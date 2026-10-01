@@ -1,0 +1,1099 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Winter Arc Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080a0b;--s1:#101314;--s2:#171b1c;--s3:#1e2324;--line:#252b2c;--tx:#e9f0ef;--mu:#82908f;--ac:#27d9c2;--ac-d:#0f3a35;--warn:#fb923c;--ice:#5cc8ff;
+color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:'Space Grotesk',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.4;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:linear-gradient(var(--bg) 82%,transparent);padding:14px 0 10px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.brand{font-weight:700;letter-spacing:.02em;text-transform:uppercase;font-size:15px}
+.brand small{display:block;font-weight:500;color:var(--mu);font-size:11px;letter-spacing:0;text-transform:none}
+.nav{display:flex;gap:2px;background:var(--s1);border:1px solid var(--line);border-radius:999px;padding:4px}
+.nav button{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;color:var(--mu);font-size:13px;font-weight:500;white-space:nowrap}
+.nav button.on{background:var(--s3);color:var(--ac)}
+.nav svg{width:16px;height:16px}
+.gear{justify-self:end;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--mu)}
+.gear:hover{background:var(--s2);color:var(--tx)}
+@media(max-width:700px){
+ .top{grid-template-columns:1fr auto}
+ .nav{grid-column:1/-1;order:3;justify-content:space-between}
+ .nav button{padding:9px 12px;flex:1;justify-content:center}
+ .nav button span{display:none}.nav button.on span{display:inline}
+}
+/* shared */
+h1,h2,h3{margin:0}
+.panel{background:var(--s1);border:1px solid var(--line);border-radius:20px;padding:18px}
+.cap{color:var(--mu);font-size:12px}
+.row{display:flex;align-items:center;gap:10px}
+.sp{flex:1}
+.pill{background:var(--s2);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:500;color:var(--mu)}
+.pill.on{background:var(--ac);border-color:var(--ac);color:#04201c;font-weight:600}
+.btn{background:var(--ac);color:#04201c;font-weight:600;border-radius:12px;padding:9px 16px;font-size:13px}
+.btn.ghost{background:var(--s2);color:var(--tx);border:1px solid var(--line)}
+.btn.danger{background:#3a1717;color:#ff8d8d}
+.iconbtn{width:36px;height:36px;border-radius:50%;background:var(--s2);border:1px solid var(--line);display:grid;place-items:center}
+.iconbtn:disabled{opacity:.35;cursor:default}
+.empty{color:var(--mu);text-align:center;padding:28px 12px;font-size:14px}
+.stack{display:grid;gap:14px}
+.ring{position:relative;display:grid;place-items:center}
+.ring svg{transform:rotate(-90deg)}
+.ring .rt{position:absolute;text-align:center;line-height:1.1}
+.ring .rt b{display:block;font-weight:700}
+/* today */
+.hero{display:grid;justify-items:center;gap:6px;padding:10px 0 22px;text-align:center}
+.hero .day{font-weight:600;font-size:13px;color:var(--mu)}
+.hero .date{font-weight:700;font-size:14px}
+.tokens{display:inline-flex;align-items:center;gap:6px;background:var(--ac-d);border:1px solid #14504a;color:var(--ac);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600}
+.arcbar{width:min(360px,80%);height:4px;background:var(--s3);border-radius:4px;overflow:hidden;margin-top:6px}
+.arcbar i{display:block;height:100%;background:var(--ac)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ .weekly-report .panel{background:rgba(255,255,255,.018)}
+.weekly-report .callout{padding:12px;border:1px solid var(--bd);border-radius:10px;color:var(--tx);background:rgba(39,217,194,.04)}
+.motivation-quote{margin:8px 0 14px;padding:11px 14px;border:1px solid var(--bd);border-radius:12px;background:rgba(255,255,255,.025);color:var(--mu);font-size:12px;line-height:1.5;text-align:center}
+.motivation-quote span{margin-right:6px}
+.fin-input{width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--bd);color:var(--tx);border-radius:10px;padding:10px 12px;font:inherit}
+.fin-input:focus{outline:none;border-color:var(--ac)}
+.habit-groups{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
+.habit-group{min-width:0}
+.habit-group .group-title{margin:0 2px 10px;font-size:13px;font-weight:700;color:var(--tx)}
+.habit-group .cols{grid-template-columns:1fr}
+@media(max-width:700px){.habit-groups{grid-template-columns:1fr}.habit-group .cols{grid-template-columns:1fr}}
+@media(max-width:700px){.cols{grid-template-columns:1fr}}
+.hrow{display:flex;align-items:center;gap:10px;background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.chk{width:34px;height:34px;border-radius:10px;border:1.5px solid #333b3c;display:grid;place-items:center;color:#04201c;flex:none;background:transparent}
+.hrow.on .chk{background:var(--ac);border-color:var(--ac)}
+.hrow .chk.ice{background:#16394a;border-color:#245b77}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.hname{flex:1;font-weight:500;min-width:0;overflow-wrap:anywhere}
+.hrow.on .hname{color:var(--mu);text-decoration:line-through}
+.fl{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:600;color:var(--ac);min-width:28px;justify-content:flex-end}
+.frz{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#122632}
+.sect{margin:22px 2px 10px;font-size:13px;font-weight:600;color:var(--mu)}
+/* grid */
+.gbar{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:12px}
+.gbar .t{flex:1}
+.gbar .t b{display:block;font-size:15px}
+.gbar .meter{height:3px;background:var(--s3);border-radius:3px;margin-top:10px;overflow:hidden}
+.gbar .meter i{display:block;height:100%;background:var(--ac)}
+.seg{display:flex;background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:4px;flex:1}
+.seg button{flex:1;padding:9px;border-radius:10px;font-size:12px;font-weight:600;color:var(--mu)}
+.seg button.on{background:var(--ac);color:#04201c}
+.gridwrap{overflow-x:auto;border:1px solid var(--line);border-radius:20px;background:var(--s1);-webkit-overflow-scrolling:touch}
+.grid{min-width:calc(150px + var(--cols)*28px + 104px);padding:6px 0 10px}
+.grow{display:grid;grid-template-columns:150px 1fr 104px;align-items:center;min-height:42px}
+.grow>.nm{padding-left:16px;font-size:11px;font-weight:700;text-transform:uppercase;display:flex;align-items:center;gap:8px;text-align:left;color:var(--tx);line-height:1.15}
+.grow>.nm:hover{color:var(--ac)}
+.cells{display:grid;grid-template-columns:repeat(var(--cols),minmax(26px,1fr));justify-items:center}
+.stat{display:flex;gap:8px;align-items:center;font-size:11px;font-weight:700;padding-right:14px;justify-content:flex-end}
+.stat span{display:flex;align-items:center;gap:2px;color:var(--warn)}
+.stat span.st{color:#facc15}
+.stat em{font-style:normal;color:var(--tx);min-width:34px;text-align:right}
+.ch{font-size:11px;color:var(--mu);text-align:center;line-height:1.1;font-weight:600;padding:6px 0}
+.ch small{display:block;font-size:9px;font-weight:500;color:#566}
+.ch.cur{color:var(--ac)}
+.cell{width:22px;height:22px;border-radius:50%;border:1.5px solid #2c3435;display:grid;place-items:center;color:#04201c;background:transparent}
+.cell.d{background:var(--ac);border-color:var(--ac)}
+.cell.f{background:#16394a;border-color:#245b77}
+.cell.d.cur{box-shadow:0 0 10px 1px rgba(39,217,194,.6)}
+.cell.cur:not(.d):not(.f){border-color:var(--ac)}
+.cell:disabled{opacity:.4;cursor:default}
+.cell:not(:disabled):hover{border-color:var(--ac)}
+.trend{height:64px;position:relative;border-bottom:1px solid var(--line);margin-bottom:4px}
+.trend svg{width:100%;height:100%;display:block}
+.avg{justify-self:end;margin-right:14px;background:var(--ac-d);border:1px solid #14504a;color:var(--ac);font-weight:700;font-size:13px;padding:6px 10px;border-radius:10px}
+/* tasks */
+.tgrid{display:grid;grid-template-columns:1fr 1.15fr;gap:14px;margin-bottom:14px}
+@media(max-width:800px){.tgrid{grid-template-columns:1fr}}
+.bars{display:flex;gap:10px;align-items:flex-end;height:120px;flex:1}
+.bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%}
+.bars .tr{flex:1;width:100%;max-width:30px;background:var(--s3);border-radius:10px;display:flex;align-items:flex-end;overflow:hidden}
+.bars .tr i{display:block;width:100%;background:var(--ac);border-radius:10px;min-height:3px}
+.bars span{font-size:10px;color:var(--mu)}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.day{background:var(--s1);border:1px solid var(--line);border-radius:18px;padding:14px;display:grid;gap:10px;align-content:start}
+.day.today{border-color:#14504a;background:#0c1514}
+.day h3{font-size:14px;text-align:center}
+.day h3 small{display:block;color:var(--mu);font-weight:400;font-size:11px}
+.task{display:flex;gap:8px;align-items:flex-start;background:var(--s2);border-radius:10px;padding:7px 8px;font-size:12.5px}
+.task .tchk{width:18px;height:18px;border-radius:5px;border:1.5px solid #3a4344;flex:none;display:grid;place-items:center;color:#04201c;margin-top:1px}
+.task.on .tchk{background:var(--ac);border-color:var(--ac)}
+.task.on .tt{color:var(--mu);text-decoration:line-through}
+.task .tt{flex:1;overflow-wrap:anywhere}
+.task .x{color:var(--mu);opacity:.5;font-size:16px;line-height:1;padding:0 2px}
+.task .x:hover{opacity:1;color:#ff8d8d}
+.addin{width:100%;background:transparent;border:1px dashed #2f3839;border-radius:10px;padding:8px 10px;font-size:12.5px}
+.addin:focus{border-color:var(--ac);outline:none}
+.copy{font-size:11.5px;color:var(--mu);text-align:center;text-decoration:underline;text-underline-offset:3px}
+.mind{border-top:1px solid var(--line);padding-top:8px;display:grid;gap:5px}
+.mrow{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--mu)}
+.mdots{display:flex;gap:5px}
+.md{width:14px;height:14px;border-radius:50%;border:1.5px solid #3a4344}
+.md.on{background:var(--c);border-color:var(--c)}
+.dcount{display:flex;justify-content:space-between;font-size:11px;color:var(--mu)}
+.dcount b{color:var(--ac)}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--mu)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.lc{height:150px;width:100%;display:block}
+.xl{display:flex;justify-content:space-between;font-size:10px;color:var(--mu);margin-top:6px}
+/* goals */
+.areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.area{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:11px 12px;text-align:left;font-size:13px;font-weight:600}
+.area small{font-weight:400;color:var(--mu);font-size:11px}
+.area.on{border-color:var(--ac);background:#0c1514}
+.goal{background:var(--s1);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.ghead{display:block;width:100%;text-align:left;padding:16px 18px;display:grid;gap:8px}
+.gtop{display:flex;justify-content:space-between;gap:8px;font-weight:600}
+.gmeta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:11.5px;color:var(--mu)}
+.badge{background:var(--ac-d);color:var(--ac);border-radius:6px;padding:2px 8px;font-weight:700;font-size:10.5px}
+.badge.ns{background:var(--s3);color:var(--mu)}
+.prog{height:8px;background:var(--s3);border-radius:8px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--ac);border-radius:8px}
+.gbody{padding:0 18px 18px;display:grid;gap:8px}
+.step{display:flex;align-items:center;gap:10px;background:var(--s2);border-radius:10px;padding:8px 10px;font-size:13px}
+.step.on .tt{color:var(--mu);text-decoration:line-through}
+.step .tt{flex:1}
+.step .dd{font-size:11px;color:var(--mu)}
+.step .tchk{width:20px;height:20px;border-radius:6px;border:1.5px solid #3a4344;display:grid;place-items:center;color:#04201c;flex:none}
+.step.on .tchk{background:var(--ac);border-color:var(--ac)}
+.step .x{color:var(--mu);opacity:.5;font-size:16px}
+.addstep{display:grid;grid-template-columns:1fr auto auto;gap:8px}
+@media(max-width:560px){.addstep{grid-template-columns:1fr 1fr}.addstep input[type=text]{grid-column:1/-1}}
+.gacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+/* insights */
+.big{font-size:44px;font-weight:700;line-height:1}
+.chart{position:relative;height:220px;margin-top:10px;touch-action:pan-y}
+.chart svg{width:100%;height:100%;display:block}
+.chart .pd{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--ac);transform:translate(-50%,-50%);display:none;pointer-events:none}
+.chart .tip{position:absolute;top:0;transform:translate(-50%,-100%);background:var(--s2);border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:11px;text-align:center;display:none;pointer-events:none;white-space:nowrap}
+.chart .tip b{display:block;color:var(--ac);font-size:14px}
+.sel{background:var(--s2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;max-width:100%}
+.stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+@media(max-width:700px){.stats4{grid-template-columns:1fr 1fr}}
+.sc{background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center}
+.sc .cap{display:block;margin-bottom:6px}
+.sc b{font-size:22px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:800px){.two{grid-template-columns:1fr}}
+.lb{display:grid;gap:12px;margin-top:12px}
+.lb .l{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:5px;gap:8px}
+.lb .l em{font-style:normal;color:var(--ac)}
+/* dialog */
+dialog{background:var(--s1);color:var(--tx);border:1px solid var(--line);border-radius:22px;padding:0;width:min(520px,92vw);max-height:88vh}
+dialog::backdrop{background:rgba(0,0,0,.65)}
+.dbody{padding:22px;display:grid;gap:14px;overflow-y:auto;max-height:86vh}
+.dbody h2{font-size:18px}
+.fld{display:grid;gap:6px;font-size:12px;color:var(--mu)}
+.fld input,.fld select,.fld textarea{background:var(--s2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--tx);font-size:14px;width:100%}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--ac);outline:none}
+.fld textarea{min-height:90px;font-size:11px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.sw label{cursor:pointer}
+.sw input{position:absolute;opacity:0}
+.sw span{display:block;width:26px;height:26px;border-radius:50%;border:2px solid transparent;background:var(--c)}
+.sw input:checked+span{border-color:#fff}
+.sw input:focus-visible+span{outline:2px solid var(--ac);outline-offset:2px}
+.dact{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.hl{display:flex;align-items:center;gap:10px;background:var(--s2);border-radius:10px;padding:8px 12px;font-size:13px;text-align:left;width:100%}
+.note{font-size:12px;color:var(--mu)}
+@media(prefers-reduced-motion:no-preference){.ring circle.fg{transition:stroke-dashoffset .5s ease}.prog i,.bars i,.arcbar i{transition:width .4s,height .4s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <header class="top">
+  <div class="brand">Winter Arc ❄️<small id="sub">Notion-style personal dashboard</small><small id="syncState" style="display:block;margin-top:4px;color:var(--mu)"></small></div>
+  <nav class="nav" aria-label="Sections">
+   <button data-act="tab" data-t="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Today</span></button>
+   <button data-act="tab" data-t="habits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg><span>Habits</span></button>
+   <button data-act="tab" data-t="tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12.5l3 3 5-6"/></svg><span>Tasks</span></button>
+   <button data-act="tab" data-t="goals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg><span>Goals</span></button>
+   <button data-act="tab" data-t="finance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg><span>Finance</span></button>   <button data-act="tab" data-t="transform"><span>📸</span><span>Transform</span></button>
+   <button data-act="tab" data-t="insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 20V11M12 20V4M18 20v-6"/></svg><span>Insights</span></button>
+  </nav>
+  <button class="gear" data-act="settings" aria-label="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+ </header>
+ <main id="app"></main>
+</div>
+<dialog id="dlg"><form id="dform" class="dbody"></form></dialog>
+
+<script>
+'use strict';
+/* ---------- Google Sheets sync ---------- */
+/*
+  1. Deploy the companion Code.gs as a Google Apps Script Web App.
+  2. Paste the Web App URL below.
+  3. Set SYNC_ENABLED = true.
+  4. The app keeps localStorage as an offline cache and syncs to Sheets when online.
+*/
+const SYNC_ENABLED = false;
+const SYNC_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+let syncTimer = null;
+let syncStatus = 'Local only';
+
+async function cloudRequest(payload){
+  if(!SYNC_ENABLED || !SYNC_URL || SYNC_URL.includes('PASTE_YOUR')) return null;
+  try{
+    const r = await fetch(SYNC_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  }catch(e){
+    syncStatus = 'Offline / sync pending';
+    return null;
+  }
+}
+async function cloudLoad(){
+  if(!SYNC_ENABLED || !SYNC_URL || SYNC_URL.includes('PASTE_YOUR')) return null;
+  try{
+    const r = await fetch(SYNC_URL + '?action=load');
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j = await r.json();
+    if(j && j.ok && j.state) return j.state;
+  }catch(e){}
+  return null;
+}
+async function syncSave(){
+  const result = await cloudRequest({action:'save', state:S});
+  if(result && result.ok) syncStatus='Synced to Google Sheets';
+  return result;
+}
+async function initializeCloudSync(){
+  if(!SYNC_ENABLED) return;
+  const cloud = await cloudLoad();
+  if(cloud && Array.isArray(cloud.habits)){
+    S = cloud;
+    localStorage.setItem(KEY, JSON.stringify(S));
+    syncStatus='Loaded from Google Sheets';
+    render();
+  }else{
+    await syncSave();
+  }
+}
+
+const ARC=90, KEY='winterArc.v1';
+const $=s=>document.querySelector(s);
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d)};
+const diffDays=(a,b)=>Math.round((parse(a)-parse(b))/864e5);
+const todayS=()=>ymd(new Date());
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fShort=s=>parse(s).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+const fLong=s=>parse(s).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+const CHECK='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const FLAME='<svg viewBox="0 0 24 24" width="13" height="13"><path fill="#fb923c" d="M12 2c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.2 2-4 0 2 1 3 2 3 0-3-1-6 1-9z"/></svg>';
+const STAR='<svg viewBox="0 0 24 24" width="13" height="13"><path fill="#facc15" d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z"/></svg>';
+const ICE='<svg viewBox="0 0 24 24" width="15" height="15"><path fill="#5cc8ff" d="M12 2l8 4.5v9L12 20l-8-4.5v-9z"/><path fill="#b5e8ff" d="M12 2l8 4.5L12 11 4 6.5z"/></svg>';
+const PIN='<svg viewBox="0 0 24 24" width="14" height="14"><path fill="#f472b6" d="M14 3l7 7-3 1-3.5 3.5.5 4-1.5 1.5-3.5-3.5L5 21l-1-1 3.5-4.5L4 12l1.5-1.5 4 .5L13 7.5z"/></svg>';
+
+const COLORS=['#a78bfa','#5aa9ff','#ff6b6b','#4ade80','#fb923c','#f472b6','#facc15','#27d9c2'];
+const AREAS=[['health','💪','Health & Fitness'],['career','📈','Career Growth'],['money','💰','Finances & Wealth'],['people','🧡','Relationships'],['love','💗','Romance & Love'],['spirit','✨','Spirituality'],['home','🏡','Home'],['travel','✈️','Adventure & Travel'],['fun','🎨','Fun & Hobbies'],['community','🌐','Community']];
+const MIND=[['e','Energy','#ff6b6b'],['f','Focus','#27d9c2'],['m','Motivation','#a78bfa']];
+const PL={daily:1,weekly:7,monthly:30};
+const pcount=f=>Math.ceil(ARC/PL[f]);
+
+/* ---------- state ---------- */
+function seed(){
+  const start=todayS(), d=n=>addDays(start,n);
+  const H=(name,color,freq='daily',category='build')=>({id:uid(),name,color:COLORS[color],freq,category});
+  const s=(t,n)=>({id:uid(),t,due:d(n),done:false});
+  return {
+    start,tokens:10,
+    habits:[
+            // 🧱 Building Myself — 5 daily habits
+            H('Wake up at 6 AM & bed by 11 PM',0,'daily','build'),H('10k steps',2,'daily','build'),H('2L water',7,'daily','build'),H('Workout',1,'daily','build'),H('No sugar & junk food',7,'daily','build'),
+            // 🚀 Growing — 5 daily habits
+            H('Social media < 3h',4,'daily','grow'),H('Prepare for interview',0,'daily','grow'),H('Cybersecurity study',1,'daily','grow'),H('Daily one video',3,'daily','grow'),H('Practise learned concepts',5,'daily','grow'),
+             ],
+    log:{},tasks:{},mind:{},
+    finance:{monthlyIncome:0,monthlyExpenses:0,netWorth:0,fiTarget:0,transactions:[]},
+    goals:[
+      {id:uid(),title:'Cybersecurity & Network Engineering',area:'career',due:d(89),pinned:true,achieved:false,steps:[s('Networking fundamentals',20),s('Linux & security tools',45),s('Active Directory / SOC practice',70),s('Portfolio & job applications',89)]},
+      {id:uid(),title:'Short-form Video Editing',area:'career',due:d(89),pinned:true,achieved:false,steps:[s('Daily editing practice',20),s('Build a repeatable workflow',45),s('Create consistent short-form output',70),s('Build income-ready portfolio',89)]},
+      {id:uid(),title:'Financial Independence',area:'finance',due:d(89),pinned:true,achieved:false,steps:[s('Track income & expenses',20),s('Track savings rate',45),s('Track investments & net worth',70),s('Review FI progress',89)]},
+      {id:uid(),title:'Health & Fitness',area:'health',due:d(89),pinned:false,achieved:false,steps:[s('Consistent workouts',20),s('10k steps habit',45),s('Nutrition & hydration',70),s('Maintain routine',89)]}
+    ]
+  };
+}
+let S;
+function migrateWinterArc(o){
+  if(!o || !Array.isArray(o.habits)) return o;
+
+  // Rename habits from older Winter Arc versions while preserving their IDs/logs.
+  const rename={
+    'Wake up at 8 AM':'Wake up at 6 AM & bed by 11 PM',
+    'Sleep 8h':'No sugar & junk food',
+    'Screen time < 3h':'Social media < 3h',
+    'Read 10 min':'Prepare for interview',
+    'Video editing practice':'Daily one video',
+    'Financial check-in':'Practise learned concepts'
+  };
+  o.habits.forEach(h=>{ if(rename[h.name]) h.name=rename[h.name]; });
+
+  const desired=[
+    ['Wake up at 6 AM & bed by 11 PM',0,'build'],
+    ['10k steps',2,'build'],
+    ['2L water',7,'build'],
+    ['Workout',1,'build'],
+    ['No sugar & junk food',7,'build'],
+    ['Social media < 3h',4,'grow'],
+    ['Prepare for interview',0,'grow'],
+    ['Cybersecurity study',1,'grow'],
+    ['Daily one video',3,'grow'],
+    ['Practise learned concepts',5,'grow']
+  ];
+
+  // Keep one copy of each desired habit, remove all obsolete/duplicate habits,
+  // and create a missing desired habit if necessary.
+  const kept=[];
+  const seen=new Set();
+  for(const h of o.habits){
+    if(seen.has(h.name)) continue;
+    const d=desired.find(x=>x[0]===h.name);
+    if(!d) continue;
+    seen.add(h.name);
+    h.freq='daily';
+    h.category=d[2];
+    if(typeof h.color!=='string') h.color=COLORS[d[1]];
+    kept.push(h);
+  }
+  for(const [name,color,category] of desired){
+    if(!seen.has(name)){
+      kept.push({id:uid(),name,color:COLORS[color],freq:'daily',category});
+      seen.add(name);
+    }
+  }
+  o.habits=kept;
+
+  if(o.tokens==null||o.tokens<1)o.tokens=10;
+  if(!o.finance) o.finance={monthlyIncome:0,monthlyExpenses:0,netWorth:0,fiTarget:0,transactions:[]};
+  if(!Array.isArray(o.finance.transactions)) o.finance.transactions=[];
+  return o;
+}
+function load(){
+  try{const r=localStorage.getItem(KEY); if(r){const o=JSON.parse(r); if(o&&Array.isArray(o.habits)) return migrateWinterArc(o);}}catch(e){}
+  return seed();
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+  if(SYNC_ENABLED){
+    clearTimeout(syncTimer);
+    syncTimer=setTimeout(()=>syncSave(),350);
+  }
+}
+S=load(); save();
+initializeCloudSync();
+const ui={tab:'today',phase:0,freq:'daily',wk:0,insHabit:'all',insRange:30,lbFreq:'daily',area:null,open:{},focus:null};
+ui.phase=clamp(Math.floor(diffDays(todayS(),S.start)/30),0,2);
+/* ---------- arc maths ---------- */
+const nowIdx=()=>diffDays(todayS(),S.start);
+const dateAt=i=>addDays(S.start,i);
+const active=()=>{const n=nowIdx();return n>=0&&n<ARC};
+const pkey=(h,i)=>h.freq==='daily'?dateAt(i):h.freq[0]+Math.floor(i/PL[h.freq]);
+const val=(h,i)=>(S.log[h.id]||{})[pkey(h,i)]||0;
+const vp=(h,p)=>val(h,p*PL[h.freq]);
+const curP=h=>{const n=nowIdx();if(n<0)return -1;return Math.min(Math.floor(Math.min(n,ARC-1)/PL[h.freq]),pcount(h.freq)-1)};
+function setVal(h,i,v){const k=pkey(h,i);S.log[h.id]=S.log[h.id]||{};if(v)S.log[h.id][k]=v;else delete S.log[h.id][k];save();render()}
+function tokensLeft(){let used=0;for(const id in S.log)for(const k in S.log[id])if(S.log[id][k]===2)used++;return Math.max(0,S.tokens-used)}
+function streak(h){let p=curP(h);if(p<0)return 0;if(!vp(h,p))p--;let s=0;for(;p>=0;p--){const v=vp(h,p);if(v===1)s++;else if(v!==2)break}return s}
+function best(h){let b=0,r=0;for(let p=0;p<=curP(h);p++){const v=vp(h,p);if(v===1){r++;b=Math.max(b,r)}else if(v!==2)r=0}return b}
+function pct(h){const n=curP(h)+1;if(n<=0)return 0;let d=0;for(let p=0;p<n;p++)if(vp(h,p))d++;return Math.round(d/n*100)}
+const dailies=()=>S.habits.filter(h=>h.freq==='daily');
+function dayPct(i){const ds=dailies();if(!ds.length)return 0;return Math.round(ds.filter(h=>val(h,i)>0).length/ds.length*100)}
+const unit=f=>f==='daily'?'d':f==='weekly'?'w':'m';
+
+/* ---------- chart helpers ---------- */
+function smooth(p){
+  let d=`M${p[0].x.toFixed(1)} ${p[0].y.toFixed(1)}`;
+  for(let i=0;i<p.length-1;i++){
+    const a=p[i-1]||p[i],b=p[i],c=p[i+1],e=p[i+2]||c;
+    d+=` C${(b.x+(c.x-a.x)/6).toFixed(1)} ${(b.y+(c.y-a.y)/6).toFixed(1)} ${(c.x-(e.x-b.x)/6).toFixed(1)} ${(c.y-(e.y-b.y)/6).toFixed(1)} ${c.x.toFixed(1)} ${c.y.toFixed(1)}`;
+  }
+  return d;
+}
+function runs(vals,xf,yf){
+  const out=[];let run=[];
+  const flush=()=>{if(run.length)out.push(run);run=[]};
+  vals.forEach((v,i)=>{if(v==null)flush();else run.push({x:xf(i),y:yf(v)})});flush();return out;
+}
+const runPath=rs=>rs.map(r=>r.length===1?`M${r[0].x} ${r[0].y}h0.01`:smooth(r)).join(' ');
+
+/* ---------- views ---------- */
+function ringSvg(p,size,stroke,color='#27d9c2'){
+  const r=(size-stroke)/2,c=2*Math.PI*r;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#242a2b" stroke-width="${stroke}"/><circle class="fg" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p/100)}"/></svg>`;
+}
+function ring(p,size,stroke,big,small){
+  return `<div class="ring" style="width:${size}px;height:${size}px">${ringSvg(p,size,stroke)}<div class="rt"><b style="font-size:${size/4.2}px">${big}</b>${small?`<span class="cap" style="font-size:10px">${small}</span>`:''}</div></div>`;
+}
+
+function habitRow(h,i,canAct){
+  const v=val(h,i),on=v>0;
+  return `<div class="hrow ${on?'on':''}"><button class="chk ${v===2?'ice':''}" ${canAct?'':'disabled'} data-act="toggle" data-h="${h.id}" data-i="${i}" aria-pressed="${on}" aria-label="${esc(h.name)}">${v===2?ICE:on?CHECK:''}</button><span class="dot" style="background:${h.color}"></span><span class="hname">${esc(h.name)}</span>${!on&&canAct&&tokensLeft()>0?`<button class="frz" data-act="freeze" data-h="${h.id}" data-i="${i}" title="Use a freeze token" aria-label="Freeze ${esc(h.name)}">${ICE}</button>`:''}<span class="fl">${FLAME}${streak(h)}</span></div>`;
+}
+
+function vToday(){
+  const n=nowIdx(),ok=active(),ds=dailies();
+  const done=ok?ds.filter(h=>val(h,n)>0).length:0;
+  const p=ds.length&&ok?Math.round(done/ds.length*100):0;
+  const banner=n<0?`Arc starts ${fLong(S.start)}, in ${-n} day${-n>1?'s':''}`:n>=ARC?'Arc complete: 90 of 90 days':`Day ${n+1} of ${ARC}, ${ARC-n-1} to go`;
+  const arcPct=clamp(Math.round((n+1)/ARC*100),0,100);
+  const wk=S.habits.filter(h=>h.freq==='weekly'),mo=S.habits.filter(h=>h.freq==='monthly');
+  const tt=S.tasks[todayS()]||[];
+  return `<section>
+  <div class="motivation-quote">
+    <span>❄️</span>
+    <em>“Don’t give up. Try again. Every day is another chance to become better.”</em>
+  </div>
+  <div class="hero"><div class="day">${banner}</div><div class="arcbar"><i style="width:${arcPct}%"></i></div>
+   <div style="margin-top:14px">${ring(p,172,14,p+'%','today')}</div>
+   <div class="date">${fLong(todayS()).toUpperCase()}</div>
+   <div class="cap">${done} / ${ds.length} habits completed</div>
+   <div class="tokens">${ICE} 10 freeze tokens total · ${tokensLeft()} remaining</div></div>
+  ${ds.length?`
+   <div class="habit-groups">
+    <div class="habit-group">
+     <div class="group-title">🧱 Building Myself</div>
+     <div class="cols">${ds.filter(h=>h.category==='build').map(h=>habitRow(h,n,ok)).join('')}</div>
+    </div>
+    <div class="habit-group">
+     <div class="group-title">🚀 Growing</div>
+     <div class="cols">${ds.filter(h=>h.category==='grow').map(h=>habitRow(h,n,ok)).join('')}</div>
+    </div>
+   </div>`:`<div class="empty">No daily habits yet. Add one from the Habits tab.</div>`}
+  ${wk.length?`<div class="sect">This week</div><div class="cols">${wk.map(h=>habitRow(h,clamp(n,0,ARC-1),ok)).join('')}</div>`:''}
+  ${mo.length?`<div class="sect">This month</div><div class="cols">${mo.map(h=>habitRow(h,clamp(n,0,ARC-1),ok)).join('')}</div>`:''}
+  <div class="sect">Today's tasks</div>
+  <div class="panel" style="display:grid;gap:8px">${tt.length?tt.map(t=>taskItem(todayS(),t)).join(''):'<div class="cap">Nothing planned yet.</div>'}
+   <input class="addin" data-add="${todayS()}" placeholder="+ Add task" aria-label="Add task for today"></div>
+  </section>`;
+}
+
+function vHabits(){
+  const n=nowIdx(),f=ui.freq,cols=f==='daily'?30:f==='weekly'?13:3;
+  const base=f==='daily'?ui.phase*30:0,hs=S.habits.filter(h=>h.freq===f);
+  const ds=dailies(),doneToday=active()?ds.filter(h=>val(h,n)>0).length:0;
+  const pst=p=>base+p*PL[f];
+  let head;
+  if(f==='daily'){
+    const a=base,b=base+29;
+    head=`<div class="panel gbar"><div class="t"><span class="cap">Winter Arc, days ${a+1} to ${b+1}</span><b>${fShort(dateAt(a))} to ${fShort(dateAt(b))}</b><span class="cap">${doneToday}/${ds.length} habits done today</span><div class="meter"><i style="width:${clamp(Math.round((n+1)/ARC*100),0,100)}%"></i></div></div>
+     <button class="iconbtn" data-act="phase" data-d="-1" ${ui.phase===0?'disabled':''} aria-label="Previous 30 days">‹</button><button class="iconbtn" data-act="phase" data-d="1" ${ui.phase===2?'disabled':''} aria-label="Next 30 days">›</button></div>`;
+  }else head='';
+  const trend=f==='daily'&&ds.length?(()=>{
+    const vals=[];for(let p=0;p<30;p++){const i=pst(p);vals.push(i<=n&&n>=0&&i<ARC?dayPct(i):null)}
+    const rs=runs(vals,i=>(i+.5)*10,v=>56-v*.5);
+    const el=vals.filter(v=>v!=null),avg=el.length?Math.round(el.reduce((a,b)=>a+b,0)/el.length):0;
+    return `<div class="grow"><div class="nm cap" style="text-transform:none;font-weight:500">Daily trend</div><div class="trend"><svg viewBox="0 0 300 64" preserveAspectRatio="none" aria-hidden="true"><path d="${runPath(rs)}" fill="none" stroke="#27d9c2" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></div><div class="avg">${avg}% avg</div></div>`;
+  })():'';
+  const hdr=`<div class="grow"><div class="nm cap" style="text-transform:none;font-weight:500">Habit</div><div class="cells">${[...Array(cols)].map((_,p)=>{
+    const i=pst(p),cur=f==='daily'?i===n:Math.floor(n/PL[f])===p&&n>=0&&n<ARC;
+    if(f==='daily'){const d=parse(dateAt(i));const first=p===0||d.getDate()===1;return `<div class="ch ${cur?'cur':''}"><small>${first?d.toLocaleDateString('en-GB',{month:'short'}):'&nbsp;'}</small>${d.getDate()}</div>`}
+    return `<div class="ch ${cur?'cur':''}">${f==='weekly'?'W'+(p+1):'Month '+(p+1)}</div>`;
+  }).join('')}</div><div class="ch" style="text-align:right;padding-right:14px">Stats</div></div>`;
+  const rows=hs.map(h=>{
+    const cells=[...Array(cols)].map((_,p)=>{
+      const i=pst(p),v=val(h,i),ok=n>=0&&i<=n&&i<ARC;
+      const cur=f==='daily'?i===n:Math.floor(n/PL[f])===p&&n>=0&&n<ARC;
+      return `<button class="cell ${v===1?'d':''} ${v===2?'f':''} ${cur?'cur':''}" ${ok?'':'disabled'} data-act="cell" data-h="${h.id}" data-i="${i}" title="${esc(h.name)}, ${f==='daily'?fShort(dateAt(i)):f==='weekly'?'week '+(p+1):'month '+(p+1)}" aria-label="${esc(h.name)} ${f} period ${p+1}">${v===1?CHECK:v===2?ICE:''}</button>`;
+    }).join('');
+    return `<div class="grow"><button class="nm" data-act="edithabit" data-h="${h.id}"><span class="dot" style="background:${h.color}"></span>${esc(h.name)}</button><div class="cells">${cells}</div><div class="stat"><em>${pct(h)}%</em><span>${FLAME}${streak(h)}</span><span class="st">${STAR}${best(h)}</span></div></div>`;
+  }).join('');
+  return `<section>${head}
+  <div class="row" style="margin-bottom:12px"><div class="seg" role="tablist">${['daily','weekly','monthly'].map(x=>`<button class="${f===x?'on':''}" data-act="freq" data-f="${x}">${x[0].toUpperCase()+x.slice(1)}</button>`).join('')}</div><button class="btn" data-act="newhabit">+ New habit</button></div>
+  <div class="gridwrap"><div class="grid" style="--cols:${cols}">${trend}${hdr}${rows||`<div class="empty">No ${f} habits yet.</div>`}</div></div>
+  <p class="note" style="margin:10px 4px">Tap a circle to tick it. Tap again to use a freeze token and keep your streak. Tap once more to clear.</p></section>`;
+}
+
+function taskItem(d,t){
+  return `<div class="task ${t.d?'on':''}"><button class="tchk" data-act="tdone" data-d="${d}" data-id="${t.id}" aria-pressed="${!!t.d}" aria-label="Toggle task">${t.d?CHECK:''}</button><span class="tt">${esc(t.t)}</span><button class="x" data-act="tdel" data-d="${d}" data-id="${t.id}" aria-label="Delete task">×</button></div>`;
+}
+function vTasks(){
+  const base=addDays(todayS(),ui.wk*7),ws=addDays(base,-parse(base).getDay());
+  const days=[...Array(7)].map((_,k)=>addDays(ws,k)),T=todayS();
+  const st=days.map(d=>{const l=S.tasks[d]||[];return {d,l,done:l.filter(t=>t.d).length}});
+  const tot=st.reduce((a,x)=>a+x.l.length,0),dn=st.reduce((a,x)=>a+x.done,0),wp=tot?Math.round(dn/tot*100):0;
+  const wd=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const xf=i=>i*100+50,yf=v=>140-((v-1)/4)*120-10;
+  const mchart=MIND.map(([k,,c])=>{const vals=days.map(d=>(S.mind[d]||{})[k]??null);const rs=runs(vals,xf,yf);return `<path d="${runPath(rs)}" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`}).join('');
+  const hasMind=days.some(d=>S.mind[d]&&Object.keys(S.mind[d]).length);
+  return `<section>
+  <div class="row" style="margin-bottom:12px;flex-wrap:wrap"><span class="pill on">${fShort(ws)} to ${fShort(addDays(ws,6))}</span><span class="sp"></span>
+   <button class="iconbtn" data-act="wk" data-d="-1" aria-label="Previous week">‹</button><button class="pill" data-act="wk0">This week</button><button class="iconbtn" data-act="wk" data-d="1" aria-label="Next week">›</button></div>
+  <div class="tgrid">
+   <div class="panel"><h3 style="font-size:13px;text-align:center;margin-bottom:12px">Overall progress</h3>
+    <div class="row" style="gap:18px"><div class="bars">${st.map((x,k)=>`<div><div class="tr"><i style="height:${x.l.length?Math.round(x.done/x.l.length*100):0}%"></i></div><span>${wd[k]}</span></div>`).join('')}</div>
+    <div style="text-align:center">${ring(wp,110,11,wp+'%')}<div class="cap" style="margin-top:6px">${dn} / ${tot} completed</div></div></div></div>
+   <div class="panel"><h3 style="font-size:13px;text-align:center;margin-bottom:8px">Mindset tracker</h3>
+    <div class="legend" style="justify-content:center;margin-bottom:8px">${MIND.map(([,l,c])=>`<span><i style="background:${c}"></i>${l}</span>`).join('')}</div>
+    ${hasMind?`<svg class="lc" viewBox="0 0 700 140" preserveAspectRatio="none" aria-label="Mindset chart"><g stroke="#242a2b" stroke-width="1" vector-effect="non-scaling-stroke">${[10,50,90,130].map(y=>`<line x1="0" x2="700" y1="${y}" y2="${y}" vector-effect="non-scaling-stroke"/>`).join('')}</g>${mchart}</svg><div class="xl">${wd.map(w=>`<span>${w}</span>`).join('')}</div>`:`<div class="empty" style="padding:30px 8px">Rate energy, focus and motivation on each day card to see the trend.</div>`}</div></div>
+  <div class="days">${st.map((x,k)=>{
+    const p=x.l.length?Math.round(x.done/x.l.length*100):0,prev=S.tasks[addDays(x.d,-1)]||[];
+    const m=S.mind[x.d]||{};
+    return `<div class="day ${x.d===T?'today':''}"><h3>${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][k]}<small>${fShort(x.d)}</small></h3>
+     <div style="justify-self:center">${ring(p,72,8,p+'%')}</div>
+     <div style="display:grid;gap:6px">${x.l.map(t=>taskItem(x.d,t)).join('')}<input class="addin" data-add="${x.d}" placeholder="+ Add task" aria-label="Add task for ${wd[k]}"></div>
+     ${!x.l.length&&prev.length?`<button class="copy" data-act="copyy" data-d="${x.d}">Copy yesterday's list</button>`:''}
+     <div class="dcount"><span>Completed <b>${x.done}</b></span><span>Open <b style="color:var(--tx)">${x.l.length-x.done}</b></span></div>
+     <div class="mind">${MIND.map(([key,l,c])=>`<div class="mrow"><span>${l}</span><span class="mdots">${[1,2,3,4,5].map(v=>`<button class="md ${(m[key]||0)>=v?'on':''}" style="--c:${c}" data-act="mind" data-d="${x.d}" data-k="${key}" data-v="${v}" aria-label="${l} ${v} of 5"></button>`).join('')}</span></div>`).join('')}</div></div>`;
+  }).join('')}</div></section>`;
+}
+
+const gprog=g=>g.achieved?100:g.steps.length?Math.round(g.steps.filter(s=>s.done).length/g.steps.length*100):0;
+const gach=g=>g.achieved||(g.steps.length>0&&g.steps.every(s=>s.done));
+function goalCard(g){
+  const p=gach(g)?100:gprog(g),a=gach(g),open=ui.open[g.id];
+  const dl=diffDays(g.due,todayS());
+  const left=a?'Achieved':dl<0?`${-dl} days overdue`:dl===0?'Due today':`${dl} days left`;
+  const ar=AREAS.find(x=>x[0]===g.area)||AREAS[1];
+  const status=a?'Achieved':p>0?'In progress':'Not started';
+  return `<article class="goal"><button class="ghead" data-act="gopen" data-id="${g.id}" aria-expanded="${!!open}"><div class="gtop"><span>${esc(g.title)}</span>${g.pinned?PIN:''}</div>
+   <div class="gmeta"><span class="badge ${p===0&&!a?'ns':''}">${status}</span><span>${ar[1]} ${ar[2]}</span><span>${left}</span><span>${p}%</span></div><div class="prog"><i style="width:${p}%"></i></div></button>
+   ${open?`<div class="gbody">${g.steps.map(s=>`<div class="step ${s.done?'on':''}"><button class="tchk" data-act="gstep" data-id="${g.id}" data-s="${s.id}" aria-pressed="${s.done}" aria-label="Toggle step">${s.done?CHECK:''}</button><span class="tt">${esc(s.t)}</span><span class="dd">${fShort(s.due)}</span><button class="x" data-act="gstepdel" data-id="${g.id}" data-s="${s.id}" aria-label="Delete step">×</button></div>`).join('')||'<div class="cap">No steps yet. Break this goal into dated steps.</div>'}
+    <div class="addstep" data-g="${g.id}"><input class="addin" type="text" data-sstep placeholder="New step" aria-label="New step"><input class="addin" type="date" data-sdate value="${g.due}" aria-label="Step date"><button class="btn ghost" data-act="gstepadd" data-id="${g.id}">Add step</button></div>
+    <div class="gacts"><button class="btn ghost" data-act="gpin" data-id="${g.id}">${g.pinned?'Unpin':'Pin to top'}</button><button class="btn ghost" data-act="gach" data-id="${g.id}">${g.achieved?'Reopen':'Mark achieved'}</button><button class="btn danger" data-act="gdel" data-id="${g.id}">Delete</button></div></div>`:''}</article>`;
+}
+function vGoals(){
+  const gs=S.goals,doneN=gs.filter(gach).length;
+  const list=ui.area?gs.filter(g=>g.area===ui.area):gs;
+  const pinned=list.filter(g=>g.pinned),rest=list.filter(g=>!g.pinned);
+  return `<section class="stack">
+  <div class="panel row" style="gap:16px">${ring(gs.length?Math.round(doneN/gs.length*100):0,70,8,`${doneN}/${gs.length}`)}<div><span class="cap">Goals achieved</span><div style="font-weight:600">Ten areas of life, one arc</div></div><span class="sp"></span><button class="btn" data-act="newgoal">+ New goal</button></div>
+  <div><div class="sect" style="margin-top:0">Areas of life</div><div class="areas">${AREAS.map(([k,e,l])=>{const c=gs.filter(g=>g.area===k);return `<button class="area ${ui.area===k?'on':''}" data-act="area" data-a="${k}" aria-pressed="${ui.area===k}">${e} ${l}<small>${c.length} goal${c.length===1?'':'s'}, ${c.filter(gach).length} achieved</small></button>`}).join('')}</div></div>
+  ${pinned.length?`<div><div class="sect" style="margin-top:0">Top priorities</div><div class="stack">${pinned.map(goalCard).join('')}</div></div>`:''}
+  <div><div class="sect" style="margin-top:0">${ui.area?AREAS.find(a=>a[0]===ui.area)[2]:'All goals'}</div><div class="stack">${rest.map(goalCard).join('')||(pinned.length?'':'<div class="empty">No goals here yet. Add one with + New goal.</div>')}</div></div></section>`;
+}
+
+let ipts=[];
+function vInsights(){
+  const ni=Math.min(nowIdx(),ARC-1),R=ui.insRange,hid=ui.insHabit;
+  const h=S.habits.find(x=>x.id===hid);if(hid!=='all'&&!h)ui.insHabit='all';
+  const hh=ui.insHabit==='all'?null:S.habits.find(x=>x.id===ui.insHabit);
+  const from=Math.max(0,ni-R+1);
+  const pts=[];
+  if(ni>=0)for(let i=from;i<=ni;i++){
+    let v;
+    if(!hh)v=dayPct(i);else{let d=0,n=0;for(let k=Math.max(0,i-6);k<=i;k++){n++;if(val(hh,k))d++}v=Math.round(d/n*100)}
+    pts.push({i,v,label:fShort(dateAt(i))});
+  }
+  ipts=pts;
+  let head=0;
+  if(pts.length){if(!hh)head=Math.round(pts.reduce((a,x)=>a+dayPct(x.i),0)/pts.length);else head=Math.round(pts.filter(x=>val(hh,x.i)).length/pts.length*100)}
+  const W=800,Hh=220,xf=k=>pts.length>1?k/(pts.length-1)*W:W/2,yf=v=>12+(1-v/100)*(Hh-24);
+  const poly=pts.map((p,k)=>({x:xf(k),y:yf(p.v)}));
+  const line=pts.length>1?smooth(poly):'',area=pts.length>1?`${line} L${W} ${Hh} L0 ${Hh} Z`:'';
+  const avgRange=(a,b)=>{let s=0,c=0;for(let i=Math.max(0,a);i<=b;i++){if(i>ni)break;s+=dayPct(i);c++}return c?Math.round(s/c):null};
+  const tw=ni>=0?avgRange(ni-6,ni):null,lw=ni>=7?avgRange(ni-13,ni-7):null;
+  const diff=tw!=null&&lw!=null?tw-lw:null;
+  const ds=dailies();
+  const need=ni>=0&&ds.length?ds.map(x=>({x,p:pct(x)})).sort((a,b)=>a.p-b.p)[0].x.name:'None yet';
+  const bestS=S.habits.length?Math.max(...S.habits.map(best)):0;
+  const lb=S.habits.filter(x=>x.freq===ui.lbFreq).map(x=>({x,p:pct(x)})).sort((a,b)=>b.p-a.p);
+  const ts=S.habits.map(x=>({x,s:streak(x)})).filter(o=>o.s>0).sort((a,b)=>b.s-a.s).slice(0,5);
+  const mx=Math.max(1,...ts.map(o=>o.s));
+  return `<section>
+  <div class="panel"><div class="row" style="flex-wrap:wrap;align-items:flex-start"><div><span class="cap">Overall consistency</span><div class="big">${head}%</div></div><span class="sp"></span>
+   <select class="sel" data-sel="insHabit" aria-label="Habit">${`<option value="all">Overall</option>`+S.habits.map(x=>`<option value="${x.id}" ${x.id===ui.insHabit?'selected':''}>${esc(x.name)}</option>`).join('')}</select>
+   <select class="sel" data-sel="insRange" aria-label="Range">${[[7,'Last 7 days'],[30,'Last 30 days'],[90,'Full arc']].map(([v,l])=>`<option value="${v}" ${v===R?'selected':''}>${l}</option>`).join('')}</select></div>
+   ${pts.length?`<div class="chart" id="ichart"><svg viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none" role="img" aria-label="Consistency over time"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27d9c2" stop-opacity=".35"/><stop offset="1" stop-color="#27d9c2" stop-opacity="0"/></linearGradient></defs>${area?`<path d="${area}" fill="url(#ag)"/><path d="${line}" fill="none" stroke="#27d9c2" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`:`<path d="M${W/2-4} ${yf(pts[0].v)}h8" stroke="#27d9c2" stroke-width="6" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`}</svg><div class="pd"></div><div class="tip"></div></div>
+   <div class="xl"><span>${pts[0].label}</span><span>${pts[Math.floor((pts.length-1)/2)].label}</span><span>${pts[pts.length-1].label}</span></div>`:`<div class="empty">Nothing to chart yet. Your arc starts ${fLong(S.start)}.</div>`}</div>
+  <div class="stats4"><div class="sc"><span class="cap">This week</span><b>${tw==null?'-':tw+'%'}</b></div><div class="sc"><span class="cap">Vs last week</span><b style="color:${diff==null?'var(--tx)':diff>=0?'var(--ac)':'#ff8d8d'}">${diff==null?'-':(diff>=0?'+':'')+diff+'%'}</b></div><div class="sc"><span class="cap">Best streak</span><b>${FLAME} ${bestS}</b></div><div class="sc"><span class="cap">Needs attention</span><b style="font-size:15px">${esc(need)}</b></div></div>
+  ${weeklyReport()}
+  <div class="two"><div class="panel"><div class="row"><h3 style="font-size:12px;color:var(--mu)">Habit leaderboard</h3><span class="sp"></span><div class="seg" style="flex:none;padding:3px">${[['daily','D'],['weekly','W'],['monthly','M']].map(([f,l])=>`<button style="padding:5px 10px" class="${ui.lbFreq===f?'on':''}" data-act="lbf" data-f="${f}" aria-label="${f}">${l}</button>`).join('')}</div></div>
+   <div class="lb">${lb.map(o=>`<div><div class="l"><span>${esc(o.x.name)}</span><em>${o.p}%</em></div><div class="prog"><i style="width:${o.p}%"></i></div></div>`).join('')||'<div class="empty">No habits here.</div>'}</div></div>
+   <div class="panel"><h3 style="font-size:12px;color:var(--mu)">Top streaks</h3><div class="lb">${ts.map(o=>`<div><div class="l"><span>${esc(o.x.name)}</span><em>${o.s}${unit(o.x.freq)}</em></div><div class="prog"><i style="width:${Math.round(o.s/mx*100)}%"></i></div></div>`).join('')||'<div class="empty">Streaks show up after your first tick.</div>'}</div></div></div></section>`;
+}
+
+
+
+function weeklyReport(){
+  const ni=Math.min(nowIdx(),ARC-1);
+  if(ni<0) return '<div class="panel"><div class="empty">Your first weekly report will appear after you start checking off habits.</div></div>';
+  const start=Math.max(0,ni-6), days=ni-start+1;
+  const daily=S.habits.filter(h=>h.freq==='daily');
+  const rows=daily.map(h=>{
+    let done=0;
+    for(let i=start;i<=ni;i++) if(val(h,i)) done++;
+    return {...h,done,pct:Math.round(done/days*100)};
+  }).sort((a,b)=>a.pct-b.pct);
+  const weak=rows.slice(0,3);
+  const strong=rows.slice(-3).reverse();
+  const build=rows.filter(h=>h.category==='build');
+  const grow=rows.filter(h=>h.category==='grow');
+  const avg=a=>a.length?Math.round(a.reduce((s,x)=>s+x.pct,0)/a.length):0;
+  const planned=days*daily.length;
+  const completed=rows.reduce((s,x)=>s+x.done,0);
+  const overall=planned?Math.round(completed/planned*100):0;
+  const focus=weak.map(x=>esc(x.name)).join(' · ')||'Keep building consistency';
+  return `<div class="sect">📊 Weekly Report <span class="cap">${fShort(dateAt(start))} – ${fShort(dateAt(ni))}</span></div>
+  <div class="panel weekly-report">
+    <div class="two">
+      <div><span class="cap">OVERALL CONSISTENCY</span><div class="big">${overall}%</div><div class="cap">${completed} of ${planned} habit check-ins completed</div></div>
+      <div><span class="cap">NEXT WEEK'S FOCUS</span><h3 style="margin:5px 0 0">${focus}</h3><div class="cap">These are the areas with the most room to improve.</div></div>
+    </div>
+    <div class="stats4" style="margin-top:10px">
+      <div class="sc"><span class="cap">Building Myself</span><b>${avg(build)}%</b></div>
+      <div class="sc"><span class="cap">Growing</span><b>${avg(grow)}%</b></div>
+      <div class="sc"><span class="cap">Strongest</span><b style="font-size:13px">${strong.length?esc(strong[0].name):'-'}</b></div>
+      <div class="sc"><span class="cap">Needs attention</span><b style="font-size:13px">${weak.length?esc(weak[0].name):'-'}</b></div>
+    </div>
+    <div class="two" style="margin-top:10px">
+      <div class="panel"><h3 style="font-size:12px;color:var(--mu)">What went well</h3>
+        ${strong.map(x=>`<div style="margin:9px 0"><div class="l"><span>${esc(x.name)}</span><b>${x.pct}%</b></div><div class="prog"><i style="width:${x.pct}%"></i></div></div>`).join('')||'<div class="empty">Start checking habits to see your strengths.</div>'}
+      </div>
+      <div class="panel"><h3 style="font-size:12px;color:var(--mu)">What you are lacking</h3>
+        ${weak.map(x=>`<div style="margin:9px 0"><div class="l"><span>${esc(x.name)}</span><b>${x.pct}%</b></div><div class="prog"><i style="width:${x.pct}%"></i></div></div>`).join('')||'<div class="empty">No gaps yet.</div>'}
+      </div>
+    </div>
+    <div class="callout" style="margin-top:10px"><b>🎯 Concentrate more on:</b> ${focus}. Don't try to fix everything at once — improve these first next week.</div>
+  </div>`;
+}
+
+
+/* ---------- finance tracker ---------- */
+function money(n){return '₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:0})}
+function transformDefault(){
+  if(!S.transform) S.transform={checkins:[]};
+  if(!Array.isArray(S.transform.checkins)) S.transform.checkins=[];
+  return S.transform;
+}
+function imageDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    if(!file){resolve('');return}
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=reject;
+    r.readAsDataURL(file);
+  });
+}
+function renderTransformPhoto(src,alt){
+  return src
+    ? `<img src="${src}" alt="${esc(alt||'Transformation photo')}" style="width:100%;height:260px;object-fit:cover;border-radius:12px;border:1px solid var(--bd);background:#080a0b">`
+    : `<div class="empty" style="height:260px;display:grid;place-items:center;border:1px dashed var(--bd);border-radius:12px">No photo yet</div>`;
+}
+function financeSummary(){
+  const f=S.finance||{};
+  const income=Number(f.monthlyIncome||0), expenses=Number(f.monthlyExpenses||0);
+  const savings=Math.max(0,income-expenses);
+  const rate=income>0?Math.round(savings/income*100):0;
+  const target=Number(f.fiTarget||0), netWorth=Number(f.netWorth||0);
+  const fiPct=target>0?Math.min(100,Math.round(netWorth/target*100)):0;
+  const assets=(f.assets||[]).reduce((s,x)=>s+Number(x.amount||0),0);
+  const debts=(f.debts||[]).reduce((s,x)=>s+Number(x.amount||0),0);
+  const calculatedNW=assets-debts;
+  const annualExpenses=Number(f.annualExpenses||expenses*12);
+  const swr=Number(f.swr||4);
+  const corpusNeed=annualExpenses>0?Math.round(annualExpenses/(swr/100)):0;
+  const emergencyTarget=Number(f.emergencyTarget||expenses*6);
+  const monthsEmergency=expenses>0?Math.round((Number(f.emergencyFund||0)/expenses)*10)/10:0;
+  return {f,savings,rate,fiPct,assets,debts,calculatedNW,annualExpenses,swr,corpusNeed,emergencyTarget,monthsEmergency};
+}
+function finDefault(){
+  return S.finance=S.finance||{monthlyIncome:0,monthlyExpenses:0,netWorth:0,fiTarget:0,transactions:[],assets:[],debts:[],emergencyFund:0,emergencyTarget:0,annualExpenses:0,swr:4};
+}
+function vFinance(){
+  const {f,savings,rate,fiPct,assets,debts,calculatedNW,annualExpenses,swr,corpusNeed,emergencyTarget,monthsEmergency}=financeSummary();
+  const tx=(f.transactions||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const monthlyBudget=Number(f.monthlyBudget||f.monthlyExpenses||0);
+  const budgetPct=monthlyBudget>0?Math.min(100,Math.round(Number(f.monthlyExpenses||0)/monthlyBudget*100)):0;
+  const catMap={};
+  (f.transactions||[]).filter(x=>x.type==='expense').forEach(x=>{const c=x.category||'Other';catMap[c]=(catMap[c]||0)+Number(x.amount||0)});
+  const cats=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  return `<section>
+   <div class="hero">
+    <div><div class="eyebrow">PERSONAL FINANCE DASHBOARD</div><h1>💰 Finance</h1>
+    <p class="cap">Know where your money goes, build your net worth and stay on track toward Financial Independence.</p></div>
+   </div>
+
+   <div class="stats4">
+    <div class="sc"><span class="cap">Monthly income</span><b>${money(f.monthlyIncome)}</b></div>
+    <div class="sc"><span class="cap">Monthly expenses</span><b>${money(f.monthlyExpenses)}</b></div>
+    <div class="sc"><span class="cap">Monthly savings</span><b>${money(savings)}</b></div>
+    <div class="sc"><span class="cap">Savings rate</span><b>${rate}%</b></div>
+   </div>
+
+   <div class="two">
+    <div class="panel">
+      <div class="l"><div><div class="eyebrow">NET WORTH</div><h2>${money(calculatedNW||f.netWorth)}</h2></div><span class="cap">Assets − Debts</span></div>
+      <div class="two" style="margin-top:10px">
+       <div><span class="cap">Assets</span><h3>${money(assets)}</h3></div>
+       <div><span class="cap">Liabilities</span><h3>${money(debts)}</h3></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="l"><div><div class="eyebrow">FI PROGRESS</div><h2>${fiPct}%</h2></div><span class="cap">${money(f.netWorth)} / ${money(f.fiTarget)}</span></div>
+      <div class="prog" style="margin-top:10px"><i style="width:${fiPct}%"></i></div>
+    </div>
+   </div>
+
+   <div class="sect">Monthly plan</div>
+   <div class="two">
+    <div class="panel">
+      <div class="eyebrow">INCOME & EXPENSE TARGETS</div>
+      <div class="two" style="margin-top:8px">
+       <label class="fld">Income<input class="fin-input" data-fin="monthlyIncome" type="number" min="0" step="100" value="${Number(f.monthlyIncome||0)}"></label>
+       <label class="fld">Expense budget<input class="fin-input" data-fin="monthlyBudget" type="number" min="0" step="100" value="${monthlyBudget}"></label>
+      </div>
+      <div class="cap">Budget used: ${budgetPct}%</div><div class="prog" style="margin-top:8px"><i style="width:${budgetPct}%"></i></div>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">SAVINGS GOAL</div>
+      <h2>${money(savings)}</h2>
+      <div class="cap">${rate}% of monthly income is currently left after expenses.</div>
+      <label class="fld" style="margin-top:8px">Monthly expenses<input class="fin-input" data-fin="monthlyExpenses" type="number" min="0" step="100" value="${Number(f.monthlyExpenses||0)}"></label>
+    </div>
+   </div>
+
+   <div class="sect">FI planner</div>
+   <div class="panel">
+    <div class="two">
+     <label class="fld">Current net worth<input class="fin-input" data-fin="netWorth" type="number" min="0" step="1000" value="${Number(f.netWorth||0)}"></label>
+     <label class="fld">FI target<input class="fin-input" data-fin="fiTarget" type="number" min="0" step="10000" value="${Number(f.fiTarget||0)}"></label>
+    </div>
+    <div class="two" style="margin-top:8px">
+     <label class="fld">Annual expenses<input class="fin-input" data-fin="annualExpenses" type="number" min="0" step="1000" value="${annualExpenses}"></label>
+     <label class="fld">Safe withdrawal rate %<input class="fin-input" data-fin="swr" type="number" min="1" max="10" step=".5" value="${swr}"></label>
+    </div>
+    <div class="stats4" style="margin-top:10px">
+      <div class="sc"><span class="cap">Estimated FI corpus</span><b>${money(corpusNeed)}</b></div>
+      <div class="sc"><span class="cap">FI progress</span><b>${fiPct}%</b></div>
+      <div class="sc"><span class="cap">Emergency fund</span><b>${monthsEmergency} mo</b></div>
+      <div class="sc"><span class="cap">Emergency target</span><b>${money(emergencyTarget)}</b></div>
+    </div>
+   </div>
+
+   <div class="sect">Assets & liabilities</div>
+   <div class="two">
+    <div class="panel">
+      <div class="eyebrow">ASSETS</div>
+      ${(f.assets||[]).map(x=>`<div class="l" style="padding:8px 0;border-bottom:1px solid var(--bd)"><span>${esc(x.name)}</span><b>${money(x.amount)}</b></div>`).join('')||'<div class="empty">Add your savings, investments, cash or other assets.</div>'}
+      <div class="two" style="margin-top:8px"><input class="fin-input" id="assetName" placeholder="Asset name"><input class="fin-input" id="assetAmount" type="number" min="0" placeholder="Amount ₹"></div>
+      <button class="btn" data-act="finasset" style="margin-top:8px">＋ Add asset</button>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">DEBTS / LIABILITIES</div>
+      ${(f.debts||[]).map(x=>`<div class="l" style="padding:8px 0;border-bottom:1px solid var(--bd)"><span>${esc(x.name)}</span><b>${money(x.amount)}</b></div>`).join('')||'<div class="empty">Add loans, credit balances or other liabilities.</div>'}
+      <div class="two" style="margin-top:8px"><input class="fin-input" id="debtName" placeholder="Debt name"><input class="fin-input" id="debtAmount" type="number" min="0" placeholder="Amount ₹"></div>
+      <button class="btn" data-act="findebt" style="margin-top:8px">＋ Add liability</button>
+    </div>
+   </div>
+
+   <div class="sect">Add transaction</div>
+   <div class="panel">
+    <div class="two">
+      <input class="fin-input" id="finDate" type="date" value="${todayS()}">
+      <select class="fin-input" id="finType"><option value="income">Income</option><option value="expense">Expense</option><option value="investment">Investment</option></select>
+    </div>
+    <div class="two" style="margin-top:8px">
+      <input class="fin-input" id="finAmount" type="number" min="0" step="1" placeholder="Amount ₹">
+      <input class="fin-input" id="finCategory" type="text" maxlength="40" placeholder="Category (food, rent, salary...)">
+    </div>
+    <input class="fin-input" id="finNote" type="text" maxlength="80" placeholder="Note / description" style="margin-top:8px">
+    <button class="btn" data-act="finadd" style="margin-top:10px">＋ Add transaction</button>
+   </div>
+
+   <div class="sect">Spending breakdown</div>
+   <div class="panel">
+    ${cats.length?cats.map(([c,v])=>{const pct=f.monthlyExpenses>0?Math.min(100,Math.round(v/f.monthlyExpenses*100)):0;return `<div style="margin:9px 0"><div class="l"><span>${esc(c)}</span><b>${money(v)} · ${pct}%</b></div><div class="prog"><i style="width:${pct}%"></i></div></div>`}).join(''):'<div class="empty">Add categorized expense transactions to see your spending breakdown.</div>'}
+   </div>
+
+   <div class="sect">Recent transactions</div>
+   <div class="panel">
+    ${tx.length?tx.slice(0,15).map(x=>`<div class="l" style="padding:10px 0;border-bottom:1px solid var(--bd)">
+      <div><b>${esc(x.category||x.note||'Transaction')}</b><div class="cap">${esc(x.date||'')} · ${esc(x.note||'')}</div></div>
+      <div style="display:flex;gap:10px;align-items:center"><b>${x.type==='expense'?'−':x.type==='investment'?'↗':'+'}${money(x.amount)}</b><button class="btn ghost" data-act="findel" data-id="${x.id}">×</button></div>
+    </div>`).join(''):'<div class="empty">No transactions yet. Add your first income, expense or investment above.</div>'}
+   </div>
+  </section>`;
+}
+
+function vTransform(){
+  const tr=transformDefault();
+  const items=tr.checkins.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const latest=items[0], first=items[items.length-1];
+  return `<section>
+    <div class="hero">
+      <div>
+        <div class="eyebrow">PERSONAL TRANSFORMATION</div>
+        <h1>📸 Transformation</h1>
+        <p class="cap">Track your physical and personal progress with periodic photo check-ins.</p>
+      </div>
+    </div>
+
+    <div class="stats4">
+      <div class="sc"><span class="cap">Check-ins</span><b>${items.length}</b></div>
+      <div class="sc"><span class="cap">First check-in</span><b style="font-size:13px">${first?esc(first.date):'—'}</b></div>
+      <div class="sc"><span class="cap">Latest check-in</span><b style="font-size:13px">${latest?esc(latest.date):'—'}</b></div>
+      <div class="sc"><span class="cap">Tracking</span><b style="font-size:13px">Private</b></div>
+    </div>
+
+    <div class="two">
+      <div class="panel">
+        <div class="eyebrow">START</div>
+        ${renderTransformPhoto(first?.photo,'Starting photo')}
+        <div class="cap" style="margin-top:8px">${first?esc(first.date)+' · '+esc(first.note||'Starting point'):'Your first photo will appear here.'}</div>
+      </div>
+      <div class="panel">
+        <div class="eyebrow">CURRENT</div>
+        ${renderTransformPhoto(latest?.photo,'Latest photo')}
+        <div class="cap" style="margin-top:8px">${latest?esc(latest.date)+' · '+esc(latest.note||'Latest check-in'):'Your latest photo will appear here.'}</div>
+      </div>
+    </div>
+
+    <div class="sect">Before → After</div>
+    <div class="panel">
+      ${first&&latest&&first.id!==latest.id?`
+      <div class="two">
+        <div><div class="eyebrow">BEFORE · ${esc(first.date)}</div>${renderTransformPhoto(first.photo,'Before photo')}</div>
+        <div><div class="eyebrow">AFTER · ${esc(latest.date)}</div>${renderTransformPhoto(latest.photo,'After photo')}</div>
+      </div>`:'<div class="empty">Add at least two check-ins to compare your progress.</div>'}
+    </div>
+
+    <div class="sect">＋ New check-in</div>
+    <div class="panel">
+      <div class="two">
+        <label class="fld">Date<input class="fin-input" id="trDate" type="date" value="${todayS()}"></label>
+        <label class="fld">Weight <span class="cap">(optional)</span><input class="fin-input" id="trWeight" type="number" min="0" step="0.1" placeholder="kg"></label>
+      </div>
+      <div class="two" style="margin-top:8px">
+        <label class="fld">Waist <span class="cap">(optional)</span><input class="fin-input" id="trWaist" type="number" min="0" step="0.1" placeholder="cm"></label>
+        <label class="fld">Energy <span class="cap">(optional)</span><select class="fin-input" id="trEnergy"><option value="">Not recorded</option><option>1/5</option><option>2/5</option><option>3/5</option><option>4/5</option><option>5/5</option></select></label>
+      </div>
+      <label class="fld" style="margin-top:8px">Progress note
+        <input class="fin-input" id="trNote" maxlength="120" placeholder="How are you feeling? What changed?">
+      </label>
+      <label class="fld" style="margin-top:8px">Selfie / progress photo
+        <input class="fin-input" id="trPhoto" type="file" accept="image/*">
+      </label>
+      <div class="cap" style="margin-top:8px">Photos are stored locally in this browser. They are not uploaded to GitHub by this feature.</div>
+      <button class="btn" data-act="tradd" style="margin-top:10px">📸 Save check-in</button>
+    </div>
+
+    <div class="sect">Transformation timeline</div>
+    <div class="panel">
+      ${items.length?items.map(x=>`
+        <div class="l" style="gap:12px;padding:12px 0;border-bottom:1px solid var(--bd);align-items:flex-start">
+          <img src="${x.photo}" alt="Check-in ${esc(x.date)}" style="width:82px;height:82px;object-fit:cover;border-radius:10px;border:1px solid var(--bd)">
+          <div style="flex:1">
+            <b>${esc(x.date)}</b>
+            <div class="cap">${x.weight?esc(String(x.weight))+' kg':''}${x.waist?' · '+esc(String(x.waist))+' cm':''}${x.energy?' · Energy '+esc(x.energy):''}</div>
+            <div class="cap">${esc(x.note||'No note')}</div>
+          </div>
+          <button class="btn ghost" data-act="trdel" data-id="${x.id}">×</button>
+        </div>`).join(''):'<div class="empty">No check-ins yet. Add your first photo above.</div>'}
+    </div>
+  </section>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  document.querySelectorAll('.nav [data-t]').forEach(b=>{const on=b.dataset.t===ui.tab;b.classList.toggle('on',on);b.setAttribute('aria-current',on?'page':'false')});
+  const n=nowIdx();
+  $('#sub').textContent=n<0?`Starts ${fShort(S.start)}`:n>=ARC?'Arc complete':`Day ${n+1} of ${ARC}`;
+  const y=window.scrollY;
+  $('#app').innerHTML=({today:vToday,habits:vHabits,tasks:vTasks,goals:vGoals,finance:vFinance,transform:vTransform,insights:vInsights})[ui.tab]();
+  window.scrollTo(0,y);
+  if(ui.tab==='insights')bindChart();
+  if(ui.focus){const el=document.querySelector(ui.focus);if(el)el.focus();ui.focus=null}
+}
+function bindChart(){
+  const el=$('#ichart');if(!el||!ipts.length)return;
+  const pd=el.querySelector('.pd'),tip=el.querySelector('.tip');
+  const move=e=>{
+    const r=el.getBoundingClientRect(),f=clamp((e.clientX-r.left)/r.width,0,1);
+    const k=ipts.length>1?Math.round(f*(ipts.length-1)):0,p=ipts[k];
+    const x=ipts.length>1?k/(ipts.length-1)*100:50,y=(12+(1-p.v/100)*196)/220*100;
+    pd.style.cssText=`display:block;left:${x}%;top:${y}%`;
+    tip.style.cssText=`display:block;left:${clamp(x,8,92)}%`;
+    tip.innerHTML=`${p.label}<b>${p.v}%</b>`;
+  };
+  el.addEventListener('pointermove',move);el.addEventListener('pointerdown',move);
+  el.addEventListener('pointerleave',()=>{pd.style.display='none';tip.style.display='none'});
+}
+
+/* ---------- dialogs ---------- */
+const dlg=$('#dlg'),dform=$('#dform');
+function openDlg(kind,html,data={}){dform.dataset.kind=kind;dform.dataset.id=data.id||'';dform.innerHTML=html;if(!dlg.open)dlg.showModal()}
+dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
+function habitModal(id){
+  const h=id?S.habits.find(x=>x.id===id):null;
+  openDlg('habit',`<h2>${h?'Edit habit':'New habit'}</h2>
+   <label class="fld">Name<input name="name" required maxlength="60" value="${h?esc(h.name):''}" placeholder="e.g. Practice subnetting"></label>
+   ${h?`<div class="note">Repeats ${h.freq}. Create a new habit to change how often it repeats.</div>`:`<label class="fld">Repeats<select name="freq"><option value="daily">Every day</option><option value="weekly">Once a week</option><option value="monthly">Once a month</option></select></label>`}
+   <div class="fld">Colour<div class="sw">${COLORS.map((c,k)=>`<label><input type="radio" name="color" value="${c}" ${(h?h.color===c:k===1)?'checked':''}><span style="--c:${c}"></span></label>`).join('')}</div></div>
+   <div class="dact">${h?`<button type="button" class="btn danger" data-act="hdel" data-h="${h.id}">Delete habit</button>`:''}<span class="sp"></span><button type="button" class="btn ghost" data-act="close">Cancel</button><button class="btn">${h?'Save':'Add habit'}</button></div>`,{id});
+}
+function goalModal(){
+  openDlg('goal',`<h2>New goal</h2>
+   <label class="fld">Goal<input name="title" required maxlength="100" placeholder="e.g. Earn a networking certification"></label>
+   <label class="fld">Area of life<select name="area">${AREAS.map(a=>`<option value="${a[0]}">${a[1]} ${a[2]}</option>`).join('')}</select></label>
+   <label class="fld">Target date<input type="date" name="due" required value="${addDays(S.start,89)}"></label>
+   <div class="dact"><button type="button" class="btn ghost" data-act="close">Cancel</button><button class="btn">Add goal</button></div>`);
+}
+function settingsModal(){
+  openDlg('settings',`<h2>Settings</h2>
+   <label class="fld">Arc start date<input type="date" name="start" required value="${S.start}"></label>
+   <div class="note">Weeks and months are counted from this date, so changing it shifts them.</div>
+   <label class="fld">Freeze tokens for the whole arc<input type="number" name="tokens" min="0" max="90" value="${S.tokens}"></label>
+   <div class="fld">Habits</div><div style="display:grid;gap:6px">${S.habits.map(h=>`<button type="button" class="hl" data-act="edithabit" data-h="${h.id}"><span class="dot" style="background:${h.color}"></span><span class="sp">${esc(h.name)}</span><span class="cap">${h.freq}</span></button>`).join('')}</div>
+   <label class="fld">Backup<textarea readonly id="bk" aria-label="Backup text">${esc(JSON.stringify(S))}</textarea></label>
+   <div class="note">Your Winter Arc uses the Notion-style interface we designed. Browser storage works offline; when Google Sheets sync is enabled, the same habits, tasks, goals and progress can be shared across devices.</div>
+   <label class="fld">Restore from backup<textarea id="rs" placeholder="Paste backup text here"></textarea></label>
+   <div class="dact"><button type="button" class="btn danger" data-act="reset">Reset everything</button><button type="button" class="btn ghost" data-act="restore">Restore</button><span class="sp"></span><button type="button" class="btn ghost" data-act="close">Cancel</button><button class="btn">Save</button></div>`);
+}
+dform.addEventListener('submit',e=>{
+  e.preventDefault();
+  const k=dform.dataset.kind,id=dform.dataset.id,f=new FormData(dform);
+  if(k==='habit'){
+    const name=String(f.get('name')).trim();if(!name)return;
+    if(id){const h=S.habits.find(x=>x.id===id);h.name=name;h.color=f.get('color')}
+    else{S.habits.push({id:uid(),name,color:f.get('color'),freq:f.get('freq')});ui.freq=f.get('freq')}
+  }else if(k==='goal'){
+    const t=String(f.get('title')).trim();if(!t)return;
+    S.goals.push({id:uid(),title:t,area:f.get('area'),due:f.get('due'),pinned:false,achieved:false,steps:[]});ui.tab='goals';
+  }else if(k==='settings'){
+    if(f.get('start'))S.start=f.get('start');S.tokens=clamp(parseInt(f.get('tokens'))||0,0,90);
+    ui.phase=clamp(Math.floor(nowIdx()/30),0,2);
+  }
+  save();dlg.close();render();
+});
+
+/* ---------- actions ---------- */
+function toggleTask(d,id){const t=(S.tasks[d]||[]).find(x=>x.id===id);if(t){t.d=!t.d;save();render()}}
+function armed(b,label='Tap again to confirm'){if(b.dataset.armed)return true;b.dataset.armed='1';b.textContent=label;return false}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act,D=b.dataset,H=id=>S.habits.find(x=>x.id===id),G=id=>S.goals.find(x=>x.id===id);
+  switch(a){
+    case 'tab':ui.tab=D.t;render();window.scrollTo(0,0);break;
+    case 'toggle':{const h=H(D.h),i=+D.i;setVal(h,i,val(h,i)?0:1);break}
+    case 'freeze':{const h=H(D.h);if(tokensLeft()>0)setVal(h,+D.i,2);break}
+    case 'cell':{const h=H(D.h),i=+D.i,v=val(h,i);setVal(h,i,v===0?1:v===1?(tokensLeft()>0?2:0):0);break}
+    case 'phase':ui.phase=clamp(ui.phase+ +D.d,0,2);render();break;
+    case 'freq':ui.freq=D.f;render();break;
+    case 'newhabit':habitModal();break;
+    case 'edithabit':habitModal(D.h);break;
+    case 'hdel':if(armed(b)){S.habits=S.habits.filter(x=>x.id!==D.h);delete S.log[D.h];save();dlg.close();render()}break;
+    case 'settings':settingsModal();break;
+    case 'close':dlg.close();break;
+    case 'reset':if(armed(b)){localStorage.removeItem(KEY);S=seed();save();dlg.close();ui.phase=0;render()}break;
+    case 'restore':{try{const o=JSON.parse($('#rs').value);if(!o||!Array.isArray(o.habits)||!o.start||!Array.isArray(o.goals))throw 0;S=Object.assign(seed(),o);save();dlg.close();ui.phase=clamp(Math.floor(nowIdx()/30),0,2);render()}catch(_){b.textContent='Invalid backup text'}break}
+    case 'wk':ui.wk+= +D.d;render();break;
+    case 'wk0':ui.wk=0;render();break;
+    case 'tdone':toggleTask(D.d,D.id);break;
+    case 'tdel':S.tasks[D.d]=(S.tasks[D.d]||[]).filter(t=>t.id!==D.id);save();render();break;
+    case 'copyy':S.tasks[D.d]=(S.tasks[addDays(D.d,-1)]||[]).map(t=>({id:uid(),t:t.t,d:false}));save();render();break;
+    case 'mind':{const m=S.mind[D.d]=S.mind[D.d]||{};const v=+D.v;if(m[D.k]===v)delete m[D.k];else m[D.k]=v;save();render();break}
+    case 'newgoal':goalModal();break;
+    case 'gopen':ui.open[D.id]=!ui.open[D.id];render();break;
+    case 'area':ui.area=ui.area===D.a?null:D.a;render();break;
+    case 'gstep':{const s=G(D.id).steps.find(x=>x.id===D.s);s.done=!s.done;save();render();break}
+    case 'gstepdel':{const g=G(D.id);g.steps=g.steps.filter(x=>x.id!==D.s);save();render();break}
+    case 'gstepadd':{const w=b.closest('.addstep'),t=w.querySelector('[data-sstep]').value.trim(),d=w.querySelector('[data-sdate]').value;if(t&&d){G(D.id).steps.push({id:uid(),t,due:d,done:false});save();render()}break}
+    case 'gpin':{const g=G(D.id);g.pinned=!g.pinned;save();render();break}
+    case 'gach':{const g=G(D.id);g.achieved=!g.achieved;if(!g.achieved)g.steps.forEach(s=>s.done=false);save();render();break}
+    case 'gdel':if(armed(b)){S.goals=S.goals.filter(x=>x.id!==D.id);save();render()}break;
+    case 'lbf':ui.lbFreq=D.f;render();break;
+    case 'tradd':{
+      const tr=transformDefault();
+      const file=$('#trPhoto')?.files?.[0];
+      if(!file){alert('Please choose a selfie or progress photo.');break}
+      imageDataUrl(file).then(photo=>{
+        tr.checkins.push({
+          id:uid(),
+          date:$('#trDate').value||todayS(),
+          weight:$('#trWeight').value||'',
+          waist:$('#trWaist').value||'',
+          energy:$('#trEnergy').value||'',
+          note:$('#trNote').value.trim(),
+          photo
+        });
+        save();render();
+      });
+      break;
+    }
+    case 'trdel':{
+      const tr=transformDefault();
+      if(armed(b,'Tap again to delete')) break;
+      tr.checkins=tr.checkins.filter(x=>x.id!==D.id);
+      save();render();
+      break;
+    }
+    case 'finadd':{
+      const f=S.finance=S.finance||{monthlyIncome:0,monthlyExpenses:0,monthlyBudget:0,netWorth:0,fiTarget:0,transactions:[],assets:[],debts:[],emergencyFund:0,emergencyTarget:0,annualExpenses:0,swr:4};
+      const date=$('#finDate').value||todayS(),type=$('#finType').value,amount=Number($('#finAmount').value||0),category=$('#finCategory').value.trim(),note=$('#finNote').value.trim();
+      if(amount>0){
+        f.transactions.push({id:uid(),date,type,amount,category,note});
+        if(type==='income') f.monthlyIncome=Number(f.monthlyIncome||0)+amount;
+        else if(type==='expense') f.monthlyExpenses=Number(f.monthlyExpenses||0)+amount;
+        save();render();
+      }break;
+    }
+    case 'finasset':{
+      const f=finDefault(),name=$('#assetName').value.trim(),amount=Number($('#assetAmount').value||0);
+      if(name&&amount>0){f.assets=f.assets||[];f.assets.push({id:uid(),name,amount});save();render()}
+      break;
+    }
+    case 'findebt':{
+      const f=finDefault(),name=$('#debtName').value.trim(),amount=Number($('#debtAmount').value||0);
+      if(name&&amount>0){f.debts=f.debts||[];f.debts.push({id:uid(),name,amount});save();render()}
+      break;
+    }
+    case 'findel':{
+      const f=S.finance=S.finance||{monthlyIncome:0,monthlyExpenses:0,monthlyBudget:0,netWorth:0,fiTarget:0,transactions:[],assets:[],debts:[],emergencyFund:0,emergencyTarget:0,annualExpenses:0,swr:4};
+      const x=f.transactions.find(x=>x.id===D.id);
+      if(x){if(x.type==='income')f.monthlyIncome=Math.max(0,Number(f.monthlyIncome||0)-Number(x.amount||0));else if(x.type==='expense')f.monthlyExpenses=Math.max(0,Number(f.monthlyExpenses||0)-Number(x.amount||0));}
+      f.transactions=f.transactions.filter(x=>x.id!==D.id);save();render();break;
+    }
+  }
+});
+document.addEventListener('keydown',e=>{
+  const el=e.target;
+  if(e.key==='Enter'&&el.dataset&&el.dataset.add!==undefined){
+    const t=el.value.trim();if(!t)return;const d=el.dataset.add;
+    (S.tasks[d]=S.tasks[d]||[]).push({id:uid(),t,d:false});save();ui.focus=`[data-add="${d}"]`;render();
+  }else if(e.key==='Enter'&&el.dataset&&el.dataset.sstep!==undefined){
+    el.closest('.addstep').querySelector('[data-act="gstepadd"]').click();
+  }
+});
+document.addEventListener('change',e=>{
+  const s=e.target.dataset&&e.target.dataset.sel;
+  if(s){ui[s]=s==='insRange'?+e.target.value:e.target.value;render();return;}
+  const fkey=e.target.dataset&&e.target.dataset.fin;
+  if(fkey){
+    S.finance=S.finance||{monthlyIncome:0,monthlyExpenses:0,monthlyBudget:0,netWorth:0,fiTarget:0,transactions:[],assets:[],debts:[],emergencyFund:0,emergencyTarget:0,annualExpenses:0,swr:4};
+    S.finance[fkey]=Math.max(0,Number(e.target.value||0));
+    save();render();
+  }
+});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
+render();
+
+setInterval(()=>{
+  const el=document.getElementById('syncState');
+  if(el) el.textContent = SYNC_ENABLED ? syncStatus : 'Local browser storage';
+},1000);
+
+</script>
+</body>
+</html>
